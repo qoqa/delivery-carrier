@@ -16,7 +16,7 @@ from odoo.addons.base.tests.common import BaseCommon
 
 from ..postlogistics.web_service import GENERATE_LABEL_PATH, PostlogisticsWebService
 
-ENDPOINT_URL = "https://wedecint.post.ch/"
+ENDPOINT_URL = "https://dcapi.apis.post.ch/"
 CLIENT_ID = "XXX"
 CLIENT_SECRET = "XXX"
 LICENSE = "XXX"
