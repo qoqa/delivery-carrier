@@ -19,8 +19,10 @@ _logger = logging.getLogger(__name__)
 
 _compile_itemid = re.compile(r"[^0-9A-Za-z+\-_]")
 _compile_itemnum = re.compile(r"[^0-9]")
-AUTH_PATH = "/WEDECOAuth/token"
-GENERATE_LABEL_PATH = "/api/barcode/v1/generateAddressLabel"
+AUTH_URL = "https://api.post.ch/OAuth/token"
+AUTH_TIMEOUT = 15  # seconds
+GENERATE_LABEL_PATH = "/barcode/v1/generateAddressLabel"
+API_TIMEOUT = 15  # seconds
 
 DISALLOWED_CHARS_MAPPING = {
     "|": "",
@@ -52,9 +54,7 @@ class PostlogisticsWebService:
 
     Handbook available here:
     https://developer.post.ch/en/digital-commerce-api
-    https://wedec.post.ch/doc/swagger/index.html?
-        url=https://wedec.post.ch/doc/api/barcode/v1/swagger.yaml
-        #/Barcode/generateAddressLabel
+    https://developer.apis.post.ch/ui/apis/5cff6ab7-8325-4a05-bf6a-b783256a0552/pages/50fa2b65-2f67-4867-ba2b-652f6738676d
 
     Allows to generate labels
 
@@ -236,7 +236,7 @@ class PostlogisticsWebService:
             "printAddresses": "RECIPIENT_AND_CUSTOMER",
             "imageFileType": output_format,
             "imageResolution": image_resolution,
-            "printPreview": False,
+            "printPreview": not picking.carrier_id.prod_environment,
         }
 
     @classmethod
@@ -252,9 +252,6 @@ class PostlogisticsWebService:
 
         client_id = delivery_carrier.postlogistics_client_id
         client_secret = delivery_carrier.postlogistics_client_secret
-        authentication_url = urllib.parse.urljoin(
-            delivery_carrier.postlogistics_endpoint_url or "", AUTH_PATH
-        )
 
         if not (client_id and client_secret):
             raise UserError(
@@ -275,15 +272,15 @@ class PostlogisticsWebService:
         )
 
         response = requests.post(
-            url=authentication_url,
+            url=AUTH_URL,
             headers={"content-type": "application/x-www-form-urlencoded"},
             data={
                 "grant_type": "client_credentials",
                 "client_id": client_id,
                 "client_secret": client_secret,
-                "scope": "WEDEC_BARCODE_READ",
+                "scope": "DCAPI_BARCODE_READ",
             },
-            timeout=60,
+            timeout=AUTH_TIMEOUT,
         )
 
         try:
@@ -394,7 +391,7 @@ class PostlogisticsWebService:
                     "content-type": "application/json",
                 },
                 data=json.dumps(data),
-                timeout=60,
+                timeout=API_TIMEOUT,
             )
 
             if response.status_code != 200:
