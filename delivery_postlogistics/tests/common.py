@@ -16,7 +16,8 @@ from odoo.addons.base.tests.common import BaseCommon
 
 from ..postlogistics.web_service import GENERATE_LABEL_PATH, PostlogisticsWebService
 
-ENDPOINT_URL = "https://wedecint.post.ch/"
+AUTH_ENDPOINT_URL = "https://api.post.ch"
+ENDPOINT_URL = "https://dcapi.apis.post.ch/"
 CLIENT_ID = "XXX"
 CLIENT_SECRET = "XXX"
 LICENSE = "XXX"
@@ -61,7 +62,7 @@ class TestPostlogisticsCommon(BaseCommon):
     @classmethod
     def _request_handler(cls, s: Session, r: PreparedRequest, /, **kw):
         # We need to override Odoo check to allow API testing
-        if r.url.startswith(ENDPOINT_URL):
+        if r.url.startswith(ENDPOINT_URL) or r.url.startswith(AUTH_ENDPOINT_URL):
             return _super_send(s, r, **kw)
         return super()._request_handler(s, r, **kw)
 
